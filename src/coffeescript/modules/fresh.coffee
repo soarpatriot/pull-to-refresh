@@ -1,19 +1,24 @@
 
 $ = jQuery = require "jQuery"
+Spiner = require "./spin.js"
 
 class Fresh
-  constructor: ->
+  constructor: (options) ->
     @el =
           container: $(".water")
           window: $(window)
           document: $(document)
-
+          spinnerContainer: $(".spinner-container")
+    @options =
+                url: options.url
+                data: options.data
+                callback: options.callback
+    @spinner = new Spiner()
     @init()
     @addListener()
 
   init: ->
-    console.log "init"
-  
+
   addListener: ->
     console.log "lisnter"
 
@@ -22,7 +27,33 @@ class Fresh
       scrollHeight = @el.document.height()
       windowHeight = @el.window.height()
       if (scrollTop + windowHeight) >= scrollHeight
+        @spinner.spin()
+        @el.spinnerContainer.append(@spinner.el)
+        @load()
         console.log "scroll down the bottom"
-    
-module.exports = new Fresh
+  
+  load: ->
+    console.log options.url
+    $.ajax(
+      url: @options.url
+      success: @success
+      dataType: "json"
+    )
+    console.log "loading"
+
+  success: (response) =>
+    @options.callback.call(null,response)
+    # console.log response
+    @spinner.stop()
+
+
+options =
+          url: "http://api.dreamreality.cn/v1/posts.json"
+          data: null
+          callback: (response) ->
+            console.log response
+
+module.exports = new Fresh(options)
+
+
 
